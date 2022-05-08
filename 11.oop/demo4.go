@@ -29,6 +29,7 @@ func (this *Dog) Sleep() { fmt.Println("dog is sleep!") }
 
 func (this *Dog) GetColor() string { return this.Color }
 
+// 定义通用方法
 func DoSomething(animal AnimalIF) {
 	animal.Sleep()
 	fmt.Println("color =", animal.GetColor())
