@@ -41,7 +41,6 @@ func (this *Client) menu() bool {
 	fmt.Println("1.Public chat mode")
 	fmt.Println("2.Private chat mode")
 	fmt.Println("3.Rename")
-	fmt.Println("4.List online user")
 	fmt.Println("0.Exit")
 
 	fmt.Scan(&flag)
@@ -53,6 +52,61 @@ func (this *Client) menu() bool {
 		fmt.Println("illegal input")
 		return false
 	}
+}
+
+func (this *Client) pubilcChat() {
+	var chatMsg string
+	fmt.Println("Please enter something you want to send (enter '#menu' open menu)")
+	fmt.Scanln(&chatMsg)
+	fmt.Scanln(&chatMsg)
+	for chatMsg != "#menu" {
+		if len(chatMsg) != 0 {
+			_, err := this.conn.Write([]byte(chatMsg))
+			if err != nil {
+				fmt.Println("conn.Write err: ", err)
+				break
+			}
+		}
+		chatMsg = ""
+		fmt.Println("Please enter something you want to send (enter '#menu' to open menu)")
+		fmt.Scanln(&chatMsg) // not support space
+	}
+}
+
+func (this *Client) privateChat() {
+
+	var userName string
+	var chatMsg string
+
+	this.listuser()
+	fmt.Println("Please enter target user name (enter '#menu' to menu)")
+	fmt.Scanln(&userName)
+	fmt.Scanln(&userName)
+
+	for userName != "#menu" {
+		fmt.Println("Please enter  something you want to send (enter '#menu' to open menu)")
+		fmt.Scanln(&chatMsg)
+
+		for chatMsg != "#menu" {
+			if len(chatMsg) != 0 {
+				sendMsg := "#to|" + userName + "|" + chatMsg
+				_, err := this.conn.Write([]byte(sendMsg))
+				if err != nil {
+					fmt.Println("conn.Write err: ", err)
+					break
+				}
+			}
+			chatMsg = ""
+			fmt.Println("Please enter something you want to send (enter '#menu' to open menu)")
+			fmt.Scanln(&chatMsg) // not support space
+		}
+
+		// select
+		this.listuser()
+		fmt.Println("Please enter target user name (enter '#menu' to menu)")
+		fmt.Scanln(&userName)
+	}
+
 }
 
 func (this *Client) rename() bool {
@@ -70,7 +124,11 @@ func (this *Client) rename() bool {
 
 func (this *Client) listuser() {
 	sendMsg := "#list"
-	this.conn.Write([]byte(sendMsg))
+	_, err := this.conn.Write([]byte(sendMsg))
+	if err != nil {
+		fmt.Println("conn.Write err:", err)
+		return
+	}
 }
 
 func (this *Client) run() {
@@ -81,14 +139,13 @@ func (this *Client) run() {
 
 		switch this.flag {
 		case 1:
+			this.pubilcChat()
 			break
 		case 2:
+			this.privateChat()
 			break
 		case 3:
 			this.rename()
-			break
-		case 4:
-			this.listuser()
 			break
 		}
 	}
